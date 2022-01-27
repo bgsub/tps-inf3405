@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class Server {
 	private static ServerSocket listener;
@@ -11,9 +12,37 @@ public class Server {
 
 	public static void main(String[] args) throws Exception
 	{
-		//Il Compteur incremente chegue connexion d'un client au serveur
+		//Le Compteur incremente chaque connexion d'un client au serveur
 		int clientNumber = 0 ;
-		// Adresse et port du secev
+		// Adresse et port du serveur
+	    Scanner myObj = new Scanner(System.in);  // Create a Scanner object
+	    //Input d'entrée de l'adresse IP
+	    System.out.println("Entrez l'adresse IP du poste sur lequel s’exécute le serveur: ");
+	    String ipAdress = myObj.nextLine();  // Read user input
+	    while(!verifierAdresseIp(ipAdress)) {
+	    	System.out.println("Adresse IP invalide,veuillez reessayer");
+		    System.out.println("Entrez l'adresse IP du poste sur lequel s’exécute le serveur: ");
+		    ipAdress = myObj.nextLine();  // Read user input
+	    }
+
+	    System.out.println("IP adress is: " + ipAdress);  // Output user input
+	    
+	    System.out.println("Entrez le port d'écoute : ");
+	    String port = myObj.nextLine();  // Read user input
+	    int portNumber = 0;
+	    if(isParsable(port)) {
+	    	portNumber = Integer.parseInt(port);
+	    }
+
+	    while(portNumber <5000 || portNumber >5050 ) {
+	    	System.out.println("Port entré est invalide");
+		    System.out.println("Entrez le port d'écoute : ");
+		    port = myObj.nextLine();  // Read user input
+		    if(isParsable(port))
+		    	portNumber = Integer.parseInt(port);
+	    }
+	    System.out.println("port is: " + port);
+
 		String serverAddress = "127.0.0.1";
 		int serverPort = 5000;
 		// Cretation de la connexion pour comunitats les clients
@@ -41,7 +70,33 @@ public class Server {
 			listener.close();
 		}
 	}
-
+	static boolean isParsable(String input) {
+	    try {
+	        Integer.parseInt(input);
+	        return true;
+	    } catch (final NumberFormatException e) {
+	        return false;
+	    }
+	}
+	static boolean verifierAdresseIp(String adresseIp){
+		System.out.println(adresseIp);
+		String[] parts = adresseIp.split("\\.");
+		System.out.println(parts.length);
+		if(parts.length < 4 || parts.length > 4) {
+			return false;
+		}
+		for (String part : parts) {
+			if(isParsable(part)) {
+				int partIpAddress = Integer.parseInt(part);
+				if(partIpAddress <= 0 || partIpAddress > 999) {
+					return false;
+				}
+			}else {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	/*Une thread qui se charge de traiter la demande de chaque client
 sur un socket particulier*/
