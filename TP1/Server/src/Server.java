@@ -81,14 +81,13 @@ public class Server {
 	static boolean verifierAdresseIp(String adresseIp){
 		System.out.println(adresseIp);
 		String[] parts = adresseIp.split("\\.");
-		System.out.println(parts.length);
 		if(parts.length < 4 || parts.length > 4) {
 			return false;
 		}
 		for (String part : parts) {
 			if(isParsable(part)) {
 				int partIpAddress = Integer.parseInt(part);
-				if(partIpAddress <= 0 || partIpAddress > 999) {
+				if(partIpAddress < 0 || partIpAddress > 999) {
 					return false;
 				}
 			}else {
