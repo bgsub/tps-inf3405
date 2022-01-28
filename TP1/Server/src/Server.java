@@ -5,7 +5,9 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
-
+import java.io.File;  // Import the File class
+import java.io.FileNotFoundException; 
+import java.util.HashMap;
 public class Server {
 	private static ServerSocket listener;
 	// Application Server
@@ -14,6 +16,7 @@ public class Server {
 	{
 		//Le Compteur incremente chaque connexion d'un client au serveur
 		int clientNumber = 0 ;
+		lireFichier();
 		// Adresse et port du serveur
 	    Scanner myObj = new Scanner(System.in);  // Create a Scanner object
 	    //Input d'entrée de l'adresse IP
@@ -95,6 +98,26 @@ public class Server {
 			}
 		}
 		return true;
+	}
+	
+	//lire le fichier d'identification est verifier la correspondace username/mdp
+	static boolean lireFichier() {
+	    try {
+	        File myObj = new File("src/BD_Identification.txt");
+	        Scanner myReader = new Scanner(myObj);
+	        HashMap<String, String> identificationDb = new HashMap<String, String>();
+	        while (myReader.hasNextLine()) {
+	          String data = myReader.nextLine();
+	          String[] parts = data.split(" ");
+	          identificationDb.put(parts[0], parts[1]);
+	        }
+	        System.out.println(identificationDb.get("admin"));
+	        myReader.close();
+	      } catch (FileNotFoundException e) {
+	        System.out.println("An error occurred.");
+	        e.printStackTrace();
+	      }
+	    return true;
 	}
 
 	/*Une thread qui se charge de traiter la demande de chaque client

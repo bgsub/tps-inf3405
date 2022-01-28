@@ -38,6 +38,13 @@ public class Client
 		    	portNumber = Integer.parseInt(port);
 	    }
 	    System.out.println("port is: " + port);
+	    //Identification nom d utilisateur et mot de passe
+	    System.out.println("Entrez votre nom d'utilisateur: ");
+	    String username = myObj.nextLine();  // Read user input
+	    
+	    System.out.println("Entrez votre mot de passe: ");
+	    String password = myObj.nextLine();  // Read user input
+	    
 		String serverAddress = "127.0.0.1";
 		int portN = 5000;
 		
