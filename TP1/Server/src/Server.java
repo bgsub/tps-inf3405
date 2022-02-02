@@ -1,27 +1,32 @@
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
-import java.io.File;  // Import the File class
-import java.io.FileNotFoundException; 
+import java.util.ArrayList;
 import java.util.HashMap;
 public class Server {
 	private static ServerSocket listener;
+	private static HashMap<String, String> identificationDb = new HashMap<String, String>();
+	private static HashMap<String, ArrayList<String>> chatHistory = new HashMap<String, ArrayList<String>>();
+	private static ArrayList<String> chat = new ArrayList<String>();
+	private static String ipAdress;
 	// Application Server
 
 	public static void main(String[] args) throws Exception
 	{
+		
 		//Le Compteur incremente chaque connexion d'un client au serveur
+		// todo : refacto ? j ai pas vraiment lu ces conditions mais bon,gg
 		int clientNumber = 0 ;
+		
 		lireFichier();
 		// Adresse et port du serveur
 	    Scanner myObj = new Scanner(System.in);  // Create a Scanner object
 	    //Input d'entrée de l'adresse IP
 	    System.out.println("Entrez l'adresse IP du poste sur lequel s’exécute le serveur: ");
-	    String ipAdress = myObj.nextLine();  // Read user input
+	    ipAdress = myObj.nextLine();  // Read user input
 	    while(!verifierAdresseIp(ipAdress)) {
 	    	System.out.println("Adresse IP invalide,veuillez reessayer");
 		    System.out.println("Entrez l'adresse IP du poste sur lequel s’exécute le serveur: ");
@@ -51,10 +56,14 @@ public class Server {
 		// Cretation de la connexion pour comunitats les clients
 		listener =new ServerSocket();
 		listener.setReuseAddress(true);
+		//listener.accept();
 		InetAddress serverIP = InetAddress.getByName(serverAddress);
 		// Association de l'adresse et suport a la connexion
 		listener.bind(new InetSocketAddress(serverIP, serverPort));
 		System.out.format("The server is running on %s:%d%n", serverAddress, serverPort);
+        {
+        	
+        
 		try
 		{
 			//A chaque fois qu'un nouveau client se connecte, on exécute la fonction
@@ -64,7 +73,9 @@ public class Server {
 			{
 				// Important : le fonction accept() est bloquante attend qu'un prochain client se seneste
 				// Une nouvelle connection on incemente le compteur clienthumber
+
 				new ClientHandler(listener.accept(), clientNumber++).start();
+				
 			}
 		}finally
 
@@ -72,6 +83,7 @@ public class Server {
 			// Fronture de la connexion
 			listener.close();
 		}
+	}
 	}
 	static boolean isParsable(String input) {
 	    try {
@@ -100,18 +112,20 @@ public class Server {
 		return true;
 	}
 	
-	//lire le fichier d'identification est verifier la correspondace username/mdp
+	//lire le fichier d'identification et verifier la correspondace username/mdp
+	// todo : ? lire le fichier des historiques aussi
 	static boolean lireFichier() {
 	    try {
 	        File myObj = new File("src/BD_Identification.txt");
 	        Scanner myReader = new Scanner(myObj);
-	        HashMap<String, String> identificationDb = new HashMap<String, String>();
+	        identificationDb = new HashMap<String, String>();
+	        if(myReader.hasNext()) myReader.nextLine();
 	        while (myReader.hasNextLine()) {
 	          String data = myReader.nextLine();
 	          String[] parts = data.split(" ");
 	          identificationDb.put(parts[0], parts[1]);
 	        }
-	        System.out.println(identificationDb.get("admin"));
+	        System.out.println(identificationDb);
 	        myReader.close();
 	      } catch (FileNotFoundException e) {
 	        System.out.println("An error occurred.");
@@ -126,21 +140,73 @@ sur un socket particulier*/
 	{
 		private Socket socket;
 		private int clientNumber;
-		public ClientHandler(Socket socket, int clientNumber)
+		public ClientHandler(Socket socket, int clientNumber) throws IOException
 		{
 			this.socket = socket;
 			this.clientNumber = clientNumber;
+	        
 			System.out.println("New connection with client#" + clientNumber+" at "+socket);
+			
 		}
 		//Une thread se charge d'envoyer au client un message de bienvenue
 		public void run()
 		{
+			
 			try
 			{ 
 				// Creation d'un canal sortant pour snygyer des messages au client
+				
 				DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 				// Envoie d'un message au client
-				out.writeUTF("Hello from server you are client#" + clientNumber);
+				String username = "";
+				String  password = "";
+				out.writeUTF("veuillez entrer votre username ");
+				DataInputStream in = new DataInputStream(socket.getInputStream());
+				username = in.readUTF();
+				out.writeUTF("veuillez entrer votre mot de passe ");
+				password = in.readUTF();
+				
+				// validation de l informaion du client( username et mdp) maybe refacto?
+		     	if(identificationDb.containsKey(username) && !identificationDb.get(username).equals(password))
+				{
+					try {
+						
+						socket.close();
+					}
+					catch (IOException e) {
+						System.out.println("Couldn't close a socket, what's going on?");
+					}
+					out.writeUTF("votre mot de passe est icorrect, la connexion va se fermer");
+					System.out.println("Connection with client closed");
+				}
+		    	if(!identificationDb.containsKey(username))
+				{
+		    		identificationDb.put(username,password);
+		    		out.writeUTF("ce nom d utilisateur n existe pas. Un nouveau compte a ete cree pour vous");
+				}
+		    	// question chargé: le out de la prochaine ligne apparait apres que le client quitte le chat 
+		    	else out.writeUTF("Bienvenu " + username);
+				System.out.println(username + " " + password);
+				boolean done = false;
+				  // lecture de chaque ligne du chat pour un seul client, pas encore essayé pour de multiples clients 
+				  // todo : essayer pour multiples clients, clean up, refactorisation
+		         while (!done)
+		         {  try
+		            {  String line = in.readUTF();
+		               System.out.println(line);
+		               done = line.equals(".bye");
+		               if(chat.size() < 15) chat.add(line);
+		               else {
+		            	   chat.remove(0);
+		            	   chat.add(line);
+		               }
+		            }
+		            catch(IOException ioe)
+		            {  done = true;
+		            }
+		         }
+				
+				
 			} catch (IOException e) {
 				System.out.println("Error handling client# " + clientNumber + ":" + e);
 			}
@@ -148,6 +214,25 @@ sur un socket particulier*/
 			{ 
 				try {
 					// Fermeture de la connexion avec le client
+					chatHistory.put(ipAdress,chat);
+					// ecriture de l historique de chat (15 dernieres lignes)
+					// todo : lire le fichier existant et ecraser les donnees deja ecrite si on a une historique du serveur actuel
+					// todo : tester l ecriture pour plusieurs serveurs
+					try {  
+					      FileWriter myWriter = new FileWriter("chat_history.txt");
+					      String newLine = System.getProperty("line.separator");
+					      myWriter.write(ipAdress + newLine);
+					      for(int i = 0; i<chat.size() ; i++)
+					      {
+					    	  myWriter.write(chat.get(i) + newLine);
+					      }
+					      myWriter.close();
+					      System.out.println("Successfully wrote to the file.");
+					    } catch (IOException e) {
+					      System.out.println("An error occurred.");
+					      e.printStackTrace();
+					    } 
+					System.out.println(chatHistory);
 					socket.close();
 				}
 				catch (IOException e) {

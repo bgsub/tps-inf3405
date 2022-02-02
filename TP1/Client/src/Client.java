@@ -1,10 +1,11 @@
-import java.io.DataInputStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
 public class Client
 {
 	private static Socket socket;
+	private static PrintWriter output;
 	/* Application client
 	 */
 	public static void main(String[] args) throws Exception
@@ -38,23 +39,46 @@ public class Client
 		    	portNumber = Integer.parseInt(port);
 	    }
 	    System.out.println("port is: " + port);
-	    //Identification nom d utilisateur et mot de passe
-	    System.out.println("Entrez votre nom d'utilisateur: ");
-	    String username = myObj.nextLine();  // Read user input
-	    
-	    System.out.println("Entrez votre mot de passe: ");
-	    String password = myObj.nextLine();  // Read user input
 	    
 		String serverAddress = "127.0.0.1";
 		int portN = 5000;
-		
 		// Création d'une nouvelle connexion avec le serveur
-		socket = new Socket(serverAddress, portN);
-		
+		 socket = new Socket(serverAddress, portN);
 		System.out.format("The server is running on %s:%d%n", serverAddress, portN);
-		
 		// Création d'un canal entrant pour recevoir les messages envoyés par le serveur
+		// Création d'un canal sortant pour envoyer les messages au serveur
 		DataInputStream in = new DataInputStream(socket.getInputStream());
+		DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+		
+		// authentification des utilisateurs
+		//// todo: refacto: creer une fonction pour ce bloc 
+		String q1,q2,username,password=  "";
+		String ok = "";
+		q1 = in.readUTF();
+		System.out.println(q1);
+	     username = myObj.nextLine();
+		out.writeUTF(username);
+		q2 = in.readUTF();
+		System.out.println(q2);
+		password = myObj.nextLine();
+		out.writeUTF(password);
+		//////
+		 String line = "";
+		 // chat du client 
+		 // todo: remplacer bryan par les usernames indiqués dans l énoncé et ajouter le temps et le reste de bails
+		 // toodo: refacto : creer une fonction pour ce bloc
+	      while (!line.equals("bye"))
+	      {  try
+	         {  line = myObj.nextLine();
+	            out.writeUTF("bryan " + line);
+	            out.flush();
+	         }
+	         catch(IOException ioe)
+	         {  System.out.println("Sending error: " + ioe.getMessage());
+	         }
+	      }
+		// Création d'un canal entrant pour recevoir les messages envoyés par le serveur
+		//DataInputStream in = new DataInputStream(socket.getInputStream());
 		
 		// Attente de la réception d'un message envoyé par le serveur sur le canal
 		String helloMessageFromServer = in.readUTF();
