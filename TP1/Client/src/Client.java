@@ -52,7 +52,7 @@ public class Client
 		
 		// authentification des utilisateurs
 		//// todo: refacto: creer une fonction pour ce bloc 
-		String q1,q2,username,password=  "";
+		String q1,q2,messageConnexion,username,password=  "";
 		String ok = "";
 		q1 = in.readUTF();
 		System.out.println(q1);
@@ -62,6 +62,8 @@ public class Client
 		System.out.println(q2);
 		password = myObj.nextLine();
 		out.writeUTF(password);
+		messageConnexion = in.readUTF();
+		System.out.println(messageConnexion);
 		//////
 		 String line = "";
 		 // chat du client 
@@ -87,6 +89,7 @@ public class Client
 		// Fermeture de la connexion aves le serveur
 		socket.close();
 	}
+	//méthodes
 	static boolean isParsable(String input) {
 	    try {
 	        Integer.parseInt(input);
