@@ -1,4 +1,6 @@
 import java.io.*;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -71,9 +73,14 @@ public class Client
 		 // toodo: refacto : creer une fonction pour ce bloc
 	      while (!line.equals("bye"))
 	      {  try
-	         {  line = myObj.nextLine();
-	            out.writeUTF("bryan " + line);
-	            out.flush();
+	         {  
+	    	   DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	    	   DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm:ss");
+	    	   LocalDateTime now = LocalDateTime.now();
+	    	   line = myObj.nextLine();
+	    	   out.writeUTF("["+username + " - " + ipAdress + ":" + portNumber + " - " + date.format(now) + "@" + time.format(now) + "]: "+ line);
+	    	   out.flush();
+	            
 	         }
 	         catch(IOException ioe)
 	         {  System.out.println("Sending error: " + ioe.getMessage());
