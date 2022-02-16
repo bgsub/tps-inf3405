@@ -13,7 +13,6 @@ public class Client
 	public static void main(String[] args) throws Exception
 	{
 		//Adresse et port du serveur
-		// Adresse et port du serveur
 	    Scanner myObj = new Scanner(System.in);  // Create a Scanner object
 	    //Input d'entrée de l'adresse IP
 	    System.out.println("Entrez l'adresse IP du serveur: ");
@@ -73,26 +72,27 @@ public class Client
 		 // toodo: refacto : creer une fonction pour ce bloc
 	      while (!line.equals("bye"))
 	      {  try
-	         {  
+	         { 
+	    	  int letterCode = System.in.read();
+	    	  while((letterCode = System.in.read()) != 48) {
+	    		  line = line + (char)letterCode;
+	    	  }
 	    	   DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	    	   DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm:ss");
 	    	   LocalDateTime now = LocalDateTime.now();
-	    	   line = myObj.nextLine();
+	    	   //line = System.in.read();
+	    	   if(line != "") {
 	    	   out.writeUTF("["+username + " - " + ipAdress + ":" + portNumber + " - " + date.format(now) + "@" + time.format(now) + "]: "+ line);
-	    	   out.flush();
-	            
+	    	   out.flush();   
+	    	   }
+	    	   line = "";
+	    	   String message = in.readUTF();
+	    	   System.out.println("message recu : " + message);
 	         }
 	         catch(IOException ioe)
 	         {  System.out.println("Sending error: " + ioe.getMessage());
 	         }
-	      }
-		// Création d'un canal entrant pour recevoir les messages envoyés par le serveur
-		//DataInputStream in = new DataInputStream(socket.getInputStream());
-		
-		// Attente de la réception d'un message envoyé par le serveur sur le canal
-		String helloMessageFromServer = in.readUTF();
-		System.out.println(helloMessageFromServer);
-		
+	      }		
 		// Fermeture de la connexion aves le serveur
 		socket.close();
 	}
@@ -114,7 +114,7 @@ public class Client
 		for (String part : parts) {
 			if(isParsable(part)) {
 				int partIpAddress = Integer.parseInt(part);
-				if(partIpAddress < 0 || partIpAddress > 999) {
+				if(partIpAddress < 0 || partIpAddress > 255) {
 					return false;
 				}
 			}else {
