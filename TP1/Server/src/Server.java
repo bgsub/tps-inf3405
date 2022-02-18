@@ -6,6 +6,8 @@ import java.net.Socket;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class Server {
 	private static ServerSocket listener;
@@ -14,6 +16,7 @@ public class Server {
 	private static HashMap<String, ArrayList<String>> chatHistory = new HashMap<String, ArrayList<String>>();
 	private static ArrayList<String> chat = new ArrayList<String>();
 	private static String ipAdress;
+	private static Scanner myObj;
 	// Application Server
 
 	public static void main(String[] args) throws Exception {
@@ -24,7 +27,7 @@ public class Server {
 
 		lireFichier();
 		// Adresse et port du serveur
-		Scanner myObj = new Scanner(System.in); // Create a Scanner object
+		myObj = new Scanner(System.in); // Create a Scanner object
 		// Input d'entrée de l'adresse IP
 		System.out.println("Entrez l'adresse IP du poste sur lequel s’exécute le serveur: ");
 		ipAdress = myObj.nextLine(); // Read user input
@@ -141,8 +144,8 @@ public class Server {
 		public MessageHandler(Socket socket) throws IOException {
 			this.socket = socket;
 			// Creation d'un canal sortant pour snygyer des messages au client
-			this.out = new DataOutputStream(socket.getOutputStream());
-			this.in = new DataInputStream(socket.getInputStream());
+			this.out = new DataOutputStream(this.socket.getOutputStream());
+			this.in = new DataInputStream(this.socket.getInputStream());
 
 		}
 
@@ -151,7 +154,7 @@ public class Server {
 				this.out.writeUTF(message);
 				this.out.flush();
 			} catch (IOException ioe) {
-				System.out.println("Failed to send message to user");
+				System.out.println("Failed to send message");
 			}
 		}
 
@@ -177,72 +180,72 @@ public class Server {
 	 * particulier
 	 */
 	private static class ClientHandler extends Thread {
-		private Socket socket;
-		private int clientNumber;
-		private MessageHandler messageHandler;
-		public ClientHandler(Socket socket, int clientNumber) throws IOException {
+		Socket socket;
+		int clientNumber;
+		MessageHandler messageHandler;
+
+		public ClientHandler(Socket socket, int clientNumber) {
 			this.socket = socket;
 			this.clientNumber = clientNumber;
 			System.out.println("New connection with client#" + clientNumber + " at " + socket);
-			// Creation d'un canal sortant pour snygyer des messages au client
-			this.messageHandler = new MessageHandler(socket);
+			try {
+				this.messageHandler = new MessageHandler(socket);
+				this.connectToApp();
+			} catch (IOException e) {
+				System.out.println("Erreur message handler");
+			}
 
 		}
+		public void connectToApp() {
+			String username = "";
+			String password = "";
+			username = this.messageHandler.receiveMessage();
+			System.out.println("username " + username);
+			password = this.messageHandler.receiveMessage();
+			System.out.println("password " + password);
 
-		// Une thread se charge d'envoyer au client un message de bienvenue
+			// validation de l informaion du client( username et mdp) maybe refacto?
+			if (identificationDb.containsKey(username) && !identificationDb.get(username).equals(password)) {
+				this.messageHandler.sendToMe("votre mot de passe est icorrect, la connexion va se fermer");
+				System.out.println("Connection with client closed");
+				try {
+					socket.close();
+				} catch (IOException e) {
+					System.out.println("Couldn't close a socket, what's going on?");
+				}
+			} else if (!identificationDb.containsKey(username)) {
+				// identificationDb.put(username, password);
+				Server.clientList.add(this.messageHandler);
+				this.messageHandler
+						.sendToMe("ce nom d utilisateur n existe pas. Un nouveau compte a ete cree pour vous");
+			}
+			// question chargé: le out de la prochaine ligne apparait apres que le client
+			// quitte le chat
+			else {
+				Server.clientList.add(this.messageHandler);
+			}
+			this.messageHandler.sendToMe("Bienvenue " + username);
+			System.out.println(username + " " + password);
+		}
 		public void run() {
+			// thread qui envoie et recoit les messages au client
+			new Thread(new Runnable() {
+				String lineMessage = "";
 
-			try {
-				// Envoie d'un message au client
-				String username = "";
-				String password = "";
-				this.messageHandler.sendToMe("veuillez entrer votre username ");
-				username = this.messageHandler.receiveMessage();
-				System.out.println("username "+ username);
-				this.messageHandler.sendToMe("veuillez entrer votre mot de passe ");
-				password = this.messageHandler.receiveMessage();
-				System.out.println("password "+ password);
-
-				// validation de l informaion du client( username et mdp) maybe refacto?
-				if (identificationDb.containsKey(username) && !identificationDb.get(username).equals(password)) {
-					this.messageHandler.sendToMe("votre mot de passe est icorrect, la connexion va se fermer");
-					System.out.println("Connection with client closed");
-					try {
-						socket.close();
-					} catch (IOException e) {
-						System.out.println("Couldn't close a socket, what's going on?");
-					}
-				} else if (!identificationDb.containsKey(username)) {
-					//identificationDb.put(username, password);
-					Server.clientList.add(this.messageHandler);
-					this.messageHandler.sendToMe("ce nom d utilisateur n existe pas. Un nouveau compte a ete cree pour vous");
-				}
-				// question chargé: le out de la prochaine ligne apparait apres que le client
-				// quitte le chat
-				else {
-					Server.clientList.add(this.messageHandler);
-				}
-				this.messageHandler.sendToMe("Bienvenue " + username);
-				System.out.println(username + " " + password);
-				boolean done = false;
-				// lecture de chaque ligne du chat pour un seul client, pas encore essayé pour
-				// de multiples clients
-				// todo : essayer pour multiples clients, clean up, refactorisation
-				while (!done) {
-						String line = this.messageHandler.receiveMessage();
-						System.out.println("message : " + line);
-						this.messageHandler.sendToAllUsers(line);
-						done = line.equals(".bye");
+				@Override
+				public void run() {
+					lineMessage = messageHandler.receiveMessage();
+					while (lineMessage != "bye") {
+						System.out.println(lineMessage);
+						messageHandler.sendToAllUsers(lineMessage);
 						if (chat.size() < 15)
-							chat.add(line);
+							chat.add(lineMessage);
 						else {
 							chat.remove(0);
-							chat.add(line);
+							chat.add(lineMessage);
 						}
+						lineMessage = messageHandler.receiveMessage();
 					}
-			}finally {
-				try {
-					// Fermeture de la connexion avec le client
 					chatHistory.put(ipAdress, chat);
 					// ecriture de l historique de chat (15 dernieres lignes)
 					// todo : lire le fichier existant et ecraser les donnees deja ecrite si on a
@@ -262,12 +265,14 @@ public class Server {
 						e.printStackTrace();
 					}
 					System.out.println(chatHistory);
-					socket.close();
-				} catch (IOException e) {
-					System.out.println("Couldn't close a socket, what's going on?");
+					try {
+						socket.close();
+					} catch (IOException e) {
+						System.out.println("Couldn't close a socket, what's going on?");
+					}
+					System.out.println("Connection with client# " + clientNumber + " closed");
 				}
-				System.out.println("Connection with client# " + clientNumber + " closed");
-			}
+			}).start();
 		}
 	}
 }
