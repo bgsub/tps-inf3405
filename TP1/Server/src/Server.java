@@ -136,6 +136,18 @@ public class Server {
 		return true;
 	}
 
+	static void ecrireFichier(String username, String password) {
+		try {
+			FileWriter myWriter = new FileWriter("src/BD_Identification.txt",true);
+			myWriter.write(username + " " + password+"\r\n");
+			myWriter.close();
+			System.out.println("Successfully wrote to the identification");
+		} catch (IOException e) {
+			System.out.println("An error occurred.");
+			e.printStackTrace();
+		}
+	}
+
 	private static class MessageHandler {
 		private Socket socket;
 		private DataOutputStream out;
@@ -196,6 +208,7 @@ public class Server {
 			}
 
 		}
+
 		public void connectToApp() {
 			String username = "";
 			String password = "";
@@ -206,7 +219,7 @@ public class Server {
 
 			// validation de l informaion du client( username et mdp) maybe refacto?
 			if (identificationDb.containsKey(username) && !identificationDb.get(username).equals(password)) {
-				this.messageHandler.sendToMe("votre mot de passe est icorrect, la connexion va se fermer");
+				this.messageHandler.sendToMe("Erreur dans la saisie du mot de passe");
 				System.out.println("Connection with client closed");
 				try {
 					socket.close();
@@ -216,17 +229,16 @@ public class Server {
 			} else if (!identificationDb.containsKey(username)) {
 				// identificationDb.put(username, password);
 				Server.clientList.add(this.messageHandler);
+				Server.ecrireFichier(username, password);
 				this.messageHandler
 						.sendToMe("ce nom d utilisateur n existe pas. Un nouveau compte a ete cree pour vous");
-			}
-			// question chargé: le out de la prochaine ligne apparait apres que le client
-			// quitte le chat
-			else {
+			} else {
 				Server.clientList.add(this.messageHandler);
 			}
 			this.messageHandler.sendToMe("Bienvenue " + username);
 			System.out.println(username + " " + password);
 		}
+
 		public void run() {
 			// thread qui envoie et recoit les messages au client
 			new Thread(new Runnable() {

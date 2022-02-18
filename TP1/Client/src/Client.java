@@ -65,6 +65,12 @@ public class Client {
 		out.writeUTF(password);
 		messageConnexion = in.readUTF();
 		System.out.println(messageConnexion);
+		if (messageConnexion.equals("Erreur dans la saisie du mot de passe")) {
+			System.out.println("Vous avez été deconnecté ,mot de passe invalide !");
+			socket.close();
+			myObj.close();
+			return;
+		}
 		//////
 		// chat du client
 		// todo: remplacer bryan par les usernames indiqués dans l énoncé et ajouter le
@@ -91,16 +97,22 @@ public class Client {
 			@Override
 			public void run() {
 				try {
-					while (lineMessage != "bye") {
+					while (!lineMessage.equals("bye")) {
 						lineMessage = myObj.nextLine();
-						DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-						DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm:ss");
-						LocalDateTime now = LocalDateTime.now();
-						out.writeUTF("[" + username + " - " + ipAdress + ":" + portNumber + " - " + date.format(now)
-								+ "@" + time.format(now) + "]: " + lineMessage);
-						out.flush();
+						System.out.println(lineMessage);
+						if (lineMessage.length() <= 200) {
+							DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+							DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm:ss");
+							LocalDateTime now = LocalDateTime.now();
+							out.writeUTF("[" + username + " - " + ipAdress + ":" + portNumber + " - " + date.format(now)
+									+ "@" + time.format(now) + "]: " + lineMessage);
+							out.flush();
+						} else {
+							System.out.println("Message non envoyé : Taille du message dépasse 200 caractéres !");
+						}
 
 					}
+					System.out.println("Vous avez quitté le chat !");
 					// Fermeture de la connexion aves le serveur
 					socket.close();
 					myObj.close();
