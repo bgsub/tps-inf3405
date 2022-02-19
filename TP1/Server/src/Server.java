@@ -4,6 +4,10 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.BufferedReader;
@@ -13,6 +17,10 @@ public class Server {
 	private static ServerSocket listener;
 	private static ArrayList<MessageHandler> clientList = new ArrayList<MessageHandler>();
 	private static HashMap<String, String> identificationDb = new HashMap<String, String>();
+	private static JSONArray listOfServers = new JSONArray();
+	private static JSONArray listOfMembers = new JSONArray();
+	private static JSONObject serverDB = new JSONObject();
+	private static JSONArray chatDB =  new JSONArray();
 	private static HashMap<String, ArrayList<String>> chatHistory = new HashMap<String, ArrayList<String>>();
 	private static ArrayList<String> chat = new ArrayList<String>();
 	private static String ipAdress;
@@ -24,8 +32,8 @@ public class Server {
 		// Le Compteur incremente chaque connexion d'un client au serveur
 		// todo : refacto ? j ai pas vraiment lu ces conditions mais bon,gg
 		int clientNumber = 0;
-
-		lireFichier();
+		//lireFichier();
+		 listOfServers = JSONFileHandler.readJSONFile("src/Server_chat_handler.json");
 		// Adresse et port du serveur
 		myObj = new Scanner(System.in); // Create a Scanner object
 		// Input d'entrée de l'adresse IP
@@ -36,6 +44,13 @@ public class Server {
 			System.out.println("Entrez l'adresse IP du poste sur lequel s’exécute le serveur: ");
 			ipAdress = myObj.nextLine(); // Read user input
 		}
+		serverDB= JSONFileHandler.findTheRightServer(ipAdress,listOfServers) ;
+		if(serverDB==null)
+		{
+			listOfServers = JSONFileHandler.insertNewServer(ipAdress,listOfServers);
+			serverDB= JSONFileHandler.findTheRightServer(ipAdress,listOfServers) ;
+		}
+		
 
 		System.out.println("IP adress is: " + ipAdress); // Output user input
 
@@ -115,7 +130,7 @@ public class Server {
 
 	// lire le fichier d'identification et verifier la correspondace username/mdp
 	// todo : ? lire le fichier des historiques aussi
-	static boolean lireFichier() {
+	/*static boolean lireFichier() {
 		try {
 			File myObj = new File("src/BD_Identification.txt");
 			Scanner myReader = new Scanner(myObj);
@@ -135,7 +150,7 @@ public class Server {
 			e.printStackTrace();
 		}
 		return true;
-	}
+	}*/
 
 	static void ecrireFichier(String username, String password) {
 		try {
@@ -219,7 +234,7 @@ public class Server {
 			System.out.println("password " + password);
 
 			// validation de l informaion du client( username et mdp) maybe refacto?
-			if (identificationDb.containsKey(username) && !identificationDb.get(username).equals(password)) {
+			if (JSONFileHandler.userExists(username,serverDB) && !JSONFileHandler.isPassWordValid(username,password,serverDB)) {
 				this.messageHandler.sendToMe("Erreur dans la saisie du mot de passe");
 				System.out.println("Connection with client closed");
 				try {
@@ -227,16 +242,22 @@ public class Server {
 				} catch (IOException e) {
 					System.out.println("Couldn't close a socket, what's going on?");
 				}
-			} else if (!identificationDb.containsKey(username)) {
+			} else if (!JSONFileHandler.userExists(username,serverDB)) {
 				// identificationDb.put(username, password);
-				Server.clientList.add(this.messageHandler);
-				Server.ecrireFichier(username, password);
+				listOfMembers= JSONFileHandler.addANewMember(username,password,serverDB);
+				//Server.clientList.add(this.messageHandler);
+				//Server.ecrireFichier(username, password);
 				this.messageHandler
 						.sendToMe("ce nom d utilisateur n existe pas. Un nouveau compte a ete cree pour vous");
 			} else {
 				Server.clientList.add(this.messageHandler);
 			}
+			chat = JSONFileHandler.readChatHistory(serverDB);
 			this.messageHandler.sendToMe("Bienvenue " + username);
+		    for(int i = 0; i<chat.size();i++)
+		    {
+		    	this.messageHandler.sendToMe(chat.get(i));
+		    }
 			System.out.println(username + " " + password);
 		}
 
@@ -248,7 +269,8 @@ public class Server {
 				@Override
 				public void run() {
 					lineMessage = messageHandler.receiveMessage();
-					while (lineMessage != "bye") {
+					while (!lineMessage.equals("bye")) {
+						
 						System.out.println(lineMessage);
 						messageHandler.sendToAllUsers(lineMessage);
 						if (chat.size() < 15)
@@ -259,25 +281,22 @@ public class Server {
 						}
 						lineMessage = messageHandler.receiveMessage();
 					}
-					chatHistory.put(ipAdress, chat);
+					chatDB = JSONFileHandler.replaceChat(chat,serverDB);
+					//chatHistory.put(ipAdress, chat);
 					// ecriture de l historique de chat (15 dernieres lignes)
 					// todo : lire le fichier existant et ecraser les donnees deja ecrite si on a
 					// une historique du serveur actuel
 					// todo : tester l ecriture pour plusieurs serveurs
 					try {
-						FileWriter myWriter = new FileWriter("chat_history.txt");
-						String newLine = System.getProperty("line.separator");
-						myWriter.write(ipAdress + newLine);
-						for (int i = 0; i < chat.size(); i++) {
-							myWriter.write(chat.get(i) + newLine);
-						}
-						myWriter.close();
+						JSONFileHandler.updateJsonFile("src/Server_chat_handler.json" , ipAdress, serverDB,listOfServers);;
+					//	}
+					//	myWriter.close();
 						System.out.println("Successfully wrote to the file.");
-					} catch (IOException e) {
+					} catch (Exception e) {
 						System.out.println("An error occurred.");
 						e.printStackTrace();
 					}
-					System.out.println(chatHistory);
+					System.out.println(chatDB);
 					try {
 						socket.close();
 					} catch (IOException e) {

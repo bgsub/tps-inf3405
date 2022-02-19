@@ -45,8 +45,10 @@ public class JSONFileHandler {
 		 // testing modification of chat in the server
 		 
 		 JSONArray chat = (JSONArray) item.get("derniersMessages");
-	      String[] arr = {"hello","world"};
-		 chat  =replaceChat(arr,item);
+	     ArrayList<String> arr = new ArrayList<String>();
+	     arr.add("hello");
+	     arr.add("hi");
+		 chat  = replaceChat(arr,item);
 		 item.remove("derniersMessages");
 		 System.out.println(item);
 		 item.put("derniersMessages",chat);
@@ -110,7 +112,7 @@ public class JSONFileHandler {
 	            }
 			return item;	 
 	 }
-	
+
 	static JSONArray readJSONFile(String fileName)
 	{
 		 JSONParser parser = new JSONParser();
@@ -176,22 +178,32 @@ public class JSONFileHandler {
    // mets a jour la sauvegarde des 15 derniers messages du chat
 	//  parametres : nom de l element qui doi etre remplacer pour acceder a celui ci : String 
 	   
-	 static JSONArray replaceChat(String[] savedChat,JSONObject server)
+	 static JSONArray replaceChat(ArrayList<String> savedChat,JSONObject server)
 	 {
 		 JSONArray chat = (JSONArray) server.get("derniersMessages");
-		 for(int i = 0; i< savedChat.length;i++)
+		 for(int i = 0; i< savedChat.size();i++)
 		 {
-			 chat.add(savedChat[i]);
+			 chat.add(savedChat.get(i));
 		 }
 		 return chat;
 	 }
-	 static JSONArray insertNewServer(String ipAdress,JSONArray obj)
+		static ArrayList<String> readChatHistory(JSONObject server)
+		{
+			ArrayList<String> chatHistory = new ArrayList<String>();
+			
+			 JSONArray chat = (JSONArray) server.get("derniersMessages");
+			 for(int i = 0; i< chat.size();i++)
+			 {
+				 chatHistory.add((String) chat.get(i));
+			 }
+			 return chatHistory;
+		}
+	 @SuppressWarnings("unchecked")
+	static JSONArray insertNewServer(String ipAdress,JSONArray obj)
 	 {
 		 JSONObject server = new JSONObject();
 		 JSONArray member = new JSONArray();
 		 JSONObject memberDetails = new JSONObject();
-		 JSONObject ipAdr = new JSONObject();
-		 JSONObject chat = new JSONObject();
 		 memberDetails.put("nom","");
 		 memberDetails.put("motDePasse","");
 		 member.add(memberDetails);

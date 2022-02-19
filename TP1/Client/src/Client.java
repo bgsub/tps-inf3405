@@ -92,13 +92,13 @@ public class Client {
 		});
 		receiver.start();
 		Thread sender = new Thread(new Runnable() {
-			String lineMessage = "";
+			String lineMessage =myObj.nextLine();
 
 			@Override
 			public void run() {
 				try {
 					while (!lineMessage.equals("bye")) {
-						lineMessage = myObj.nextLine();
+						
 						System.out.println(lineMessage);
 						if (lineMessage.length() <= 200) {
 							DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -110,7 +110,7 @@ public class Client {
 						} else {
 							System.out.println("Message non envoyé : Taille du message dépasse 200 caractéres !");
 						}
-
+						lineMessage = myObj.nextLine();
 					}
 					System.out.println("Vous avez quitté le chat !");
 					// Fermeture de la connexion aves le serveur
