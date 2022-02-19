@@ -120,10 +120,11 @@ public class Server {
 			File myObj = new File("src/BD_Identification.txt");
 			Scanner myReader = new Scanner(myObj);
 			identificationDb = new HashMap<String, String>();
-			if (myReader.hasNext())
-				myReader.nextLine();
+			//if (myReader.hasNext())
+				//myReader.nextLine();
 			while (myReader.hasNextLine()) {
 				String data = myReader.nextLine();
+				System.out.println(data);
 				String[] parts = data.split(" ");
 				identificationDb.put(parts[0], parts[1]);
 			}
