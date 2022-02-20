@@ -269,7 +269,8 @@ public class Server {
 				@Override
 				public void run() {
 					lineMessage = messageHandler.receiveMessage();
-					while (!lineMessage.equals("bye")) {
+					String message = lineMessage.substring(lineMessage.length() - 3);
+					while (!message.equals("bye")) {
 						
 						System.out.println(lineMessage);
 						messageHandler.sendToAllUsers(lineMessage);

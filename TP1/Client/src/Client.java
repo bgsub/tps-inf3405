@@ -101,17 +101,15 @@ public class Client {
 						
 						System.out.println(lineMessage);
 						if (lineMessage.length() <= 200) {
-							DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-							DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm:ss");
-							LocalDateTime now = LocalDateTime.now();
-							out.writeUTF("[" + username + " - " + ipAdress + ":" + portNumber + " - " + date.format(now)
-									+ "@" + time.format(now) + "]: " + lineMessage);
+							out.writeUTF(messageFormatter(username, lineMessage));
 							out.flush();
 						} else {
 							System.out.println("Message non envoyé : Taille du message dépasse 200 caractéres !");
 						}
 						lineMessage = myObj.nextLine();
 					}
+					out.writeUTF(messageFormatter(username, lineMessage));
+					out.flush();
 					System.out.println("Vous avez quitté le chat !");
 					// Fermeture de la connexion aves le serveur
 					socket.close();
@@ -132,6 +130,15 @@ public class Client {
 		} catch (final NumberFormatException e) {
 			return false;
 		}
+	}
+	
+	static String messageFormatter(String username, String message) {
+		DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm:ss");
+		LocalDateTime now = LocalDateTime.now();
+		message = "[" + username + " - " + ipAdress + ":" + portNumber + " - " + date.format(now)
+		+ "@" + time.format(now) + "]: " + message;
+		return message;
 	}
 
 	static boolean verifierAdresseIp(String adresseIp) {
