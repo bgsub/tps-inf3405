@@ -10,8 +10,6 @@ import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 
 public class Server {
 	private static ServerSocket listener;
@@ -247,8 +245,8 @@ public class Server {
 			} else if (!JSONFileHandler.userExists(username,serverDB)) {
 				// identificationDb.put(username, password);
 				listOfMembers= JSONFileHandler.addANewMember(username,password,serverDB);
-				//Server.clientList.add(this.messageHandler);
 				//Server.ecrireFichier(username, password);
+				Server.clientList.add(this.messageHandler);
 				this.messageHandler
 						.sendToMe("ce nom d utilisateur n existe pas. Un nouveau compte a ete cree pour vous");
 			} else {
@@ -270,8 +268,8 @@ public class Server {
 				@Override
 				public void run() {
 					lineMessage = messageHandler.receiveMessage();
-					String message = lineMessage.substring(lineMessage.length() - 3);
-					while (!message.equals("bye")) {
+					//String message = lineMessage.substring(lineMessage.length() - 3);
+					while (!lineMessage.equals("bye")) {
 						
 						System.out.println(lineMessage);
 						messageHandler.sendToAllUsers(lineMessage);
@@ -282,7 +280,7 @@ public class Server {
 							chat.add(lineMessage);
 						}
 						lineMessage = messageHandler.receiveMessage();
-						 message = lineMessage.substring(lineMessage.length() - 3);
+						 //message = lineMessage.substring(lineMessage.length() - 3);
 					}
 					
 					try {

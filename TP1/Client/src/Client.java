@@ -99,7 +99,6 @@ public class Client {
 			public void run() {
 				try {
 					while (!lineMessage.equals("bye")) {
-						lineMessage = myObj.nextLine();
 						System.out.println(lineMessage);
 						if (lineMessage.length() <= 200) {
 							out.writeUTF(messageFormatter(username, lineMessage));
@@ -107,6 +106,7 @@ public class Client {
 						} else {
 							System.out.println("Message non envoyé : Taille du message dépasse 200 caractéres !");
 						}
+						lineMessage = myObj.nextLine();
 						
 					}
 					out.writeUTF(messageFormatter(username, lineMessage));
