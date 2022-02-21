@@ -10,6 +10,7 @@ public class Client {
 	private static Socket socket;
 	private static String ipAdress;
 	private static int portNumber;
+	private static String username;
 
 	/*
 	 * Application client
@@ -19,7 +20,7 @@ public class Client {
 		Scanner myObj = new Scanner(System.in); // Create a Scanner object
 		// Input d'entrée de l'adresse IP
 		System.out.println("Entrez l'adresse IP du serveur: ");
-		ipAdress = myObj.nextLine(); // Read user input
+		ipAdress = myObj.nextLine(); // Read user input 
 		while (!verifierAdresseIp(ipAdress)) {
 			System.out.println("Adresse IP invalide,veuillez reessayer");
 			System.out.println("Entrez l'adresse IP du serveur: ");
@@ -56,7 +57,7 @@ public class Client {
 
 		// authentification des utilisateurs
 		//// todo: refacto: creer une fonction pour ce bloc
-		String messageConnexion, username, password = "";
+		String messageConnexion, password = "";
 		System.out.println("veuillez entrer votre username : ");
 		username = myObj.nextLine();
 		out.writeUTF(username);
@@ -98,7 +99,7 @@ public class Client {
 			public void run() {
 				try {
 					while (!lineMessage.equals("bye")) {
-						
+						lineMessage = myObj.nextLine();
 						System.out.println(lineMessage);
 						if (lineMessage.length() <= 200) {
 							out.writeUTF(messageFormatter(username, lineMessage));
@@ -106,10 +107,10 @@ public class Client {
 						} else {
 							System.out.println("Message non envoyé : Taille du message dépasse 200 caractéres !");
 						}
-						lineMessage = myObj.nextLine();
+						
 					}
 					out.writeUTF(messageFormatter(username, lineMessage));
-					out.flush();
+				    out.flush();
 					System.out.println("Vous avez quitté le chat !");
 					// Fermeture de la connexion aves le serveur
 					socket.close();

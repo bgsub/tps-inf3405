@@ -23,7 +23,7 @@ public class JSONFileHandler {
 	public static void main(String[] args) {
 		JSONArray servers = readJSONFile("src/Server_chat_handler.json");
 		System.out.println(servers);
-		JSONObject item = findTheRightServer("1.1.0.0",servers);
+		JSONObject item = findTheRightServer("1.0.0.0",servers);
 		// testing findServer
 		System.out.println(item);
 		// testing user and passwords vilidation
@@ -62,15 +62,15 @@ public class JSONFileHandler {
 	
 	// lis le fichier et sauvegarde son contenu, supprime l ancienne version du serveur qui est en parametre,
 	//remplace celui ci par une nouvelle version passée en parametre, le rajoute dans le serveur, cree un nouveau fichier.
-	static void updateJsonFile(String fileName , String ipAdress, JSONObject newServerInstence,JSONArray oldInstance )
+	static void updateJsonFile(String fileName , String ipAdress, JSONObject newServerInstence,JSONArray oldListofServers )
 	 {
-		 System.out.println(oldInstance);
-		 JSONObject oldServer = findTheRightServer(ipAdress,oldInstance);
-		 oldInstance.remove(oldServer);
-		 oldInstance.add(newServerInstence);
-		 System.out.println(oldInstance);
+		 System.out.println(oldListofServers);
+		 JSONObject oldServer = findTheRightServer(ipAdress,oldListofServers);
+		 oldListofServers.remove(oldServer);
+		 oldListofServers.add(newServerInstence);
+		 System.out.println(oldListofServers);
 		 deleteFile(fileName);
-		 createNewJSONFile(fileName,oldInstance);
+		 createNewJSONFile(fileName,oldListofServers);
 	 }
 	static void createNewJSONFile(String fileName,JSONArray instance)
 	{
@@ -203,11 +203,12 @@ public class JSONFileHandler {
 	 {
 		 JSONObject server = new JSONObject();
 		 JSONArray member = new JSONArray();
+		 JSONArray chat = new JSONArray();
 		 JSONObject memberDetails = new JSONObject();
 		 memberDetails.put("nom","");
 		 memberDetails.put("motDePasse","");
 		 member.add(memberDetails);
-		 server.put("derniersMessages","[]");
+		 server.put("derniersMessages",chat);
 		 server.put("adresseIp",ipAdress);
 		 server.put("membres",member);
 		 obj.add(server);

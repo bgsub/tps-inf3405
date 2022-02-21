@@ -25,13 +25,14 @@ public class Server {
 	private static ArrayList<String> chat = new ArrayList<String>();
 	private static String ipAdress;
 	private static Scanner myObj;
+	private static int numberOfClients = 0;
 	// Application Server
 
 	public static void main(String[] args) throws Exception {
 
 		// Le Compteur incremente chaque connexion d'un client au serveur
 		// todo : refacto ? j ai pas vraiment lu ces conditions mais bon,gg
-		int clientNumber = 0;
+		
 		//lireFichier();
 		 listOfServers = JSONFileHandler.readJSONFile("src/Server_chat_handler.json");
 		// Adresse et port du serveur
@@ -49,8 +50,9 @@ public class Server {
 		{
 			listOfServers = JSONFileHandler.insertNewServer(ipAdress,listOfServers);
 			serverDB= JSONFileHandler.findTheRightServer(ipAdress,listOfServers) ;
+			System.out.println(serverDB);
 		}
-		
+		if(numberOfClients==0) chat = JSONFileHandler.readChatHistory(serverDB);
 
 		System.out.println("IP adress is: " + ipAdress); // Output user input
 
@@ -88,7 +90,7 @@ public class Server {
 				// Important : le fonction accept() est bloquante attend qu'un prochain client
 				// se seneste
 				// Une nouvelle connection on incemente le compteur clienthumber
-				new ClientHandler(listener.accept(), clientNumber++).start();
+				new ClientHandler(listener.accept(), numberOfClients++).start();
 
 			}
 		} finally
@@ -252,13 +254,12 @@ public class Server {
 			} else {
 				Server.clientList.add(this.messageHandler);
 			}
-			chat = JSONFileHandler.readChatHistory(serverDB);
 			this.messageHandler.sendToMe("Bienvenue " + username);
 		    for(int i = 0; i<chat.size();i++)
 		    {
 		    	this.messageHandler.sendToMe(chat.get(i));
 		    }
-			System.out.println(username + " " + password);
+			System.out.println( "nombre de clients" + numberOfClients );
 		}
 
 		public void run() {
@@ -281,7 +282,18 @@ public class Server {
 							chat.add(lineMessage);
 						}
 						lineMessage = messageHandler.receiveMessage();
+						 message = lineMessage.substring(lineMessage.length() - 3);
 					}
+					
+					try {
+						socket.close();
+						numberOfClients-=1;
+					} catch (IOException e) {
+						System.out.println("Couldn't close a socket, what's going on?");
+					}
+					System.out.println("Connection with client# " + clientNumber + " closed");
+					if(numberOfClients==0)
+					{
 					chatDB = JSONFileHandler.replaceChat(chat,serverDB);
 					//chatHistory.put(ipAdress, chat);
 					// ecriture de l historique de chat (15 dernieres lignes)
@@ -298,12 +310,7 @@ public class Server {
 						e.printStackTrace();
 					}
 					System.out.println(chatDB);
-					try {
-						socket.close();
-					} catch (IOException e) {
-						System.out.println("Couldn't close a socket, what's going on?");
 					}
-					System.out.println("Connection with client# " + clientNumber + " closed");
 				}
 			}).start();
 		}
