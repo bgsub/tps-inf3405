@@ -14,12 +14,10 @@ import java.util.HashMap;
 public class Server {
 	private static ServerSocket listener;
 	private static ArrayList<MessageHandler> clientList = new ArrayList<MessageHandler>();
-	private static HashMap<String, String> identificationDb = new HashMap<String, String>();
 	private static JSONArray listOfServers = new JSONArray();
 	private static JSONArray listOfMembers = new JSONArray();
 	private static JSONObject serverDB = new JSONObject();
 	private static JSONArray chatDB =  new JSONArray();
-	private static HashMap<String, ArrayList<String>> chatHistory = new HashMap<String, ArrayList<String>>();
 	private static ArrayList<String> chat = new ArrayList<String>();
 	private static String ipAdress;
 	private static Scanner myObj;
@@ -27,11 +25,6 @@ public class Server {
 	// Application Server
 
 	public static void main(String[] args) throws Exception {
-
-		// Le Compteur incremente chaque connexion d'un client au serveur
-		// todo : refacto ? j ai pas vraiment lu ces conditions mais bon,gg
-		
-		//lireFichier();
 		 listOfServers = JSONFileHandler.readJSONFile("src/Server_chat_handler.json");
 		// Adresse et port du serveur
 		myObj = new Scanner(System.in); // Create a Scanner object
@@ -70,31 +63,21 @@ public class Server {
 		}
 		System.out.println("port is: " + port);
 
-		String serverAddress = "127.0.0.1";
-		int serverPort = 5000;
 		// Cretation de la connexion pour comunitats les clients
 		listener = new ServerSocket();
 		listener.setReuseAddress(true);
-		InetAddress serverIP = InetAddress.getByName(serverAddress);
+		InetAddress serverIP = InetAddress.getByName(ipAdress);
 		// Association de l'adresse et suport a la connexion
-		listener.bind(new InetSocketAddress(serverIP, serverPort));
-		// listener.accept();
-		System.out.format("The server is running on %s:%d%n", serverAddress, serverPort);
+		listener.bind(new InetSocketAddress(serverIP, portNumber));
+		System.out.format("The server is running on %s:%d%n", ipAdress, portNumber);
 		try {
-			// A chaque fois qu'un nouveau client se connecte, on exécute la fonction
-			// Run() de l'objet clientHandler.
-
 			while (true) {
-				// Important : le fonction accept() est bloquante attend qu'un prochain client
-				// se seneste
-				// Une nouvelle connection on incemente le compteur clienthumber
 				new ClientHandler(listener.accept(), numberOfClients++).start();
 
 			}
 		} finally
 
 		{
-			// Fronture de la connexion
 			listener.close();
 		}
 
@@ -126,42 +109,6 @@ public class Server {
 			}
 		}
 		return true;
-	}
-
-	// lire le fichier d'identification et verifier la correspondace username/mdp
-	// todo : ? lire le fichier des historiques aussi
-	/*static boolean lireFichier() {
-		try {
-			File myObj = new File("src/BD_Identification.txt");
-			Scanner myReader = new Scanner(myObj);
-			identificationDb = new HashMap<String, String>();
-			//if (myReader.hasNext())
-				//myReader.nextLine();
-			while (myReader.hasNextLine()) {
-				String data = myReader.nextLine();
-				System.out.println(data);
-				String[] parts = data.split(" ");
-				identificationDb.put(parts[0], parts[1]);
-			}
-			System.out.println(identificationDb);
-			myReader.close();
-		} catch (FileNotFoundException e) {
-			System.out.println("An error occurred.");
-			e.printStackTrace();
-		}
-		return true;
-	}*/
-
-	static void ecrireFichier(String username, String password) {
-		try {
-			FileWriter myWriter = new FileWriter("src/BD_Identification.txt",true);
-			myWriter.write(username + " " + password+"\r\n");
-			myWriter.close();
-			System.out.println("Successfully wrote to the identification");
-		} catch (IOException e) {
-			System.out.println("An error occurred.");
-			e.printStackTrace();
-		}
 	}
 
 	private static class MessageHandler {
@@ -243,16 +190,14 @@ public class Server {
 					System.out.println("Couldn't close a socket, what's going on?");
 				}
 			} else if (!JSONFileHandler.userExists(username,serverDB)) {
-				// identificationDb.put(username, password);
 				listOfMembers= JSONFileHandler.addANewMember(username,password,serverDB);
-				//Server.ecrireFichier(username, password);
 				Server.clientList.add(this.messageHandler);
 				this.messageHandler
 						.sendToMe("ce nom d utilisateur n existe pas. Un nouveau compte a ete cree pour vous");
 			} else {
 				Server.clientList.add(this.messageHandler);
 			}
-			this.messageHandler.sendToMe("Bienvenue " + username);
+			this.messageHandler.sendToMe("Bienvenue " + username+"\nGuide: Pour quitter le chat ,écrivez le message bye .");
 		    for(int i = 0; i<chat.size();i++)
 		    {
 		    	this.messageHandler.sendToMe(chat.get(i));

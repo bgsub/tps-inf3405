@@ -11,7 +11,8 @@ public class Client {
 	private static String ipAdress;
 	private static int portNumber;
 	private static String username;
-
+	final static int MAX_MESSAGE_LENGTH = 200;
+	final static String END_MESSAGE = "bye";
 	/*
 	 * Application client
 	 */
@@ -20,7 +21,7 @@ public class Client {
 		Scanner myObj = new Scanner(System.in); // Create a Scanner object
 		// Input d'entrée de l'adresse IP
 		System.out.println("Entrez l'adresse IP du serveur: ");
-		ipAdress = myObj.nextLine(); // Read user input 
+		ipAdress = myObj.nextLine(); // Read user input
 		while (!verifierAdresseIp(ipAdress)) {
 			System.out.println("Adresse IP invalide,veuillez reessayer");
 			System.out.println("Entrez l'adresse IP du serveur: ");
@@ -43,13 +44,9 @@ public class Client {
 			if (isParsable(port))
 				portNumber = Integer.parseInt(port);
 		}
-		System.out.println("port is: " + port);
-
-		String serverAddress = "127.0.0.1";
-		int portN = 5000;
+		System.out.println("Port is: " + portNumber);
 		// Création d'une nouvelle connexion avec le serveur
-		socket = new Socket(serverAddress, portN);
-		System.out.format("The server is running on %s:%d%n", serverAddress, portN);
+		socket = new Socket(ipAdress, portNumber);
 		// Création d'un canal entrant pour recevoir les messages envoyés par le serveur
 		// Création d'un canal sortant pour envoyer les messages au serveur
 		DataInputStream in = new DataInputStream(socket.getInputStream());
@@ -74,9 +71,6 @@ public class Client {
 		}
 		//////
 		// chat du client
-		// todo: remplacer bryan par les usernames indiqués dans l énoncé et ajouter le
-		// temps et le reste de bails
-		// toodo: refacto : creer une fonction pour ce bloc
 		Thread receiver = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -93,28 +87,27 @@ public class Client {
 		});
 		receiver.start();
 		Thread sender = new Thread(new Runnable() {
-			String lineMessage =myObj.nextLine();
+			String lineMessage = myObj.nextLine();
 
 			@Override
 			public void run() {
 				try {
-					while (!lineMessage.equals("bye")) {
-						System.out.println(lineMessage);
-						if (lineMessage.length() <= 200) {
+					while (!lineMessage.equals(END_MESSAGE)) {
+						if (lineMessage.length() <= MAX_MESSAGE_LENGTH) {
 							out.writeUTF(messageFormatter(username, lineMessage));
 							out.flush();
 						} else {
 							System.out.println("Message non envoyé : Taille du message dépasse 200 caractéres !");
 						}
 						lineMessage = myObj.nextLine();
-						
+
 					}
 					out.writeUTF(messageFormatter(username, lineMessage));
-				    out.flush();
-					System.out.println("Vous avez quitté le chat !");
+					out.flush();
 					// Fermeture de la connexion aves le serveur
 					socket.close();
 					myObj.close();
+					System.out.println("Vous avez quitté le chat !");
 				} catch (IOException ioe) {
 					System.out.println("Message received Failed : " + ioe.getMessage());
 				}
@@ -132,26 +125,27 @@ public class Client {
 			return false;
 		}
 	}
-	
+
 	static String messageFormatter(String username, String message) {
 		DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm:ss");
 		LocalDateTime now = LocalDateTime.now();
-		message = "[" + username + " - " + ipAdress + ":" + portNumber + " - " + date.format(now)
-		+ "@" + time.format(now) + "]: " + message;
+		message = "[" + username + " - " + ipAdress + ":" + portNumber + " - " + date.format(now) + "@"
+				+ time.format(now) + "]: " + message;
 		return message;
 	}
 
 	static boolean verifierAdresseIp(String adresseIp) {
-		System.out.println(adresseIp);
+		final int MAX_IP_PARTS = 4;
+		final int MAX_OCT = 255;
 		String[] parts = adresseIp.split("\\.");
-		if (parts.length < 4 || parts.length > 4) {
+		if (parts.length < MAX_IP_PARTS || parts.length > MAX_IP_PARTS) {
 			return false;
 		}
 		for (String part : parts) {
 			if (isParsable(part)) {
 				int partIpAddress = Integer.parseInt(part);
-				if (partIpAddress < 0 || partIpAddress > 255) {
+				if (partIpAddress < 0 || partIpAddress > MAX_OCT) {
 					return false;
 				}
 			} else {
