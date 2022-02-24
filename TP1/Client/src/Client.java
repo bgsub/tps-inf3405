@@ -12,35 +12,37 @@ public class Client {
 	private static int portNumber;
 	private static String username;
 	final static int MAX_MESSAGE_LENGTH = 200;
+	final static int MIN_PORT = 5000;
+	final static int MAX_PORT = 5050;
 	final static String END_MESSAGE = "bye";
 	/*
 	 * Application client
 	 */
 	public static void main(String[] args) throws Exception {
 		// Adresse et port du serveur
-		Scanner myObj = new Scanner(System.in); // Create a Scanner object
+		Scanner myObj = new Scanner(System.in);
 		// Input d'entrée de l'adresse IP
 		System.out.println("Entrez l'adresse IP du serveur: ");
-		ipAdress = myObj.nextLine(); // Read user input
+		ipAdress = myObj.nextLine();
 		while (!verifierAdresseIp(ipAdress)) {
 			System.out.println("Adresse IP invalide,veuillez reessayer");
 			System.out.println("Entrez l'adresse IP du serveur: ");
-			ipAdress = myObj.nextLine(); // Read user input
+			ipAdress = myObj.nextLine();
 		}
 
-		System.out.println("IP adress is: " + ipAdress); // Output user input
+		System.out.println("IP adress is: " + ipAdress);
 
 		System.out.println("Entrez le port d'écoute : ");
-		String port = myObj.nextLine(); // Read user input
+		String port = myObj.nextLine();
 		portNumber = 0;
 		if (isParsable(port)) {
 			portNumber = Integer.parseInt(port);
 		}
 
-		while (portNumber < 5000 || portNumber > 5050) {
+		while (portNumber < MIN_PORT || portNumber > MAX_PORT) {
 			System.out.println("Port entré est invalide");
 			System.out.println("Entrez le port d'écoute : ");
-			port = myObj.nextLine(); // Read user input
+			port = myObj.nextLine();
 			if (isParsable(port))
 				portNumber = Integer.parseInt(port);
 		}
@@ -53,7 +55,6 @@ public class Client {
 		DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 
 		// authentification des utilisateurs
-		//// todo: refacto: creer une fonction pour ce bloc
 		String messageConnexion, password = "";
 		System.out.println("veuillez entrer votre username : ");
 		username = myObj.nextLine();

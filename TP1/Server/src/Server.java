@@ -22,6 +22,8 @@ public class Server {
 	private static String ipAdress;
 	private static Scanner myObj;
 	private static int numberOfClients = 0;
+	final static int MIN_PORT = 5000;
+	final static int MAX_PORT = 5050;
 	// Application Server
 
 	public static void main(String[] args) throws Exception {
@@ -30,40 +32,39 @@ public class Server {
 		myObj = new Scanner(System.in); // Create a Scanner object
 		// Input d'entrée de l'adresse IP
 		System.out.println("Entrez l'adresse IP du poste sur lequel s’exécute le serveur: ");
-		ipAdress = myObj.nextLine(); // Read user input
+		ipAdress = myObj.nextLine();
 		while (!verifierAdresseIp(ipAdress)) {
 			System.out.println("Adresse IP invalide,veuillez reessayer");
 			System.out.println("Entrez l'adresse IP du poste sur lequel s’exécute le serveur: ");
-			ipAdress = myObj.nextLine(); // Read user input
+			ipAdress = myObj.nextLine();
 		}
 		serverDB= JSONFileHandler.findTheRightServer(ipAdress,listOfServers) ;
 		if(serverDB==null)
 		{
 			listOfServers = JSONFileHandler.insertNewServer(ipAdress,listOfServers);
 			serverDB= JSONFileHandler.findTheRightServer(ipAdress,listOfServers) ;
-			System.out.println(serverDB);
 		}
 		if(numberOfClients==0) chat = JSONFileHandler.readChatHistory(serverDB);
 
-		System.out.println("IP adress is: " + ipAdress); // Output user input
+		System.out.println("IP adress is: " + ipAdress); 
 
 		System.out.println("Entrez le port d'écoute : ");
-		String port = myObj.nextLine(); // Read user input
+		String port = myObj.nextLine(); 
 		int portNumber = 0;
 		if (isParsable(port)) {
 			portNumber = Integer.parseInt(port);
 		}
 
-		while (portNumber < 5000 || portNumber > 5050) {
+		while (portNumber < MIN_PORT || portNumber > MAX_PORT) {
 			System.out.println("Port entré est invalide");
 			System.out.println("Entrez le port d'écoute : ");
-			port = myObj.nextLine(); // Read user input
+			port = myObj.nextLine(); 
 			if (isParsable(port))
 				portNumber = Integer.parseInt(port);
 		}
 		System.out.println("port is: " + port);
 
-		// Cretation de la connexion pour comunitats les clients
+		// Cretation de la connexion pour communiquer les clients
 		listener = new ServerSocket();
 		listener.setReuseAddress(true);
 		InetAddress serverIP = InetAddress.getByName(ipAdress);
@@ -93,15 +94,16 @@ public class Server {
 	}
 
 	static boolean verifierAdresseIp(String adresseIp) {
-		System.out.println(adresseIp);
+		final int MAX_IP_PARTS = 4;
+		final int MAX_OCT = 255;
 		String[] parts = adresseIp.split("\\.");
-		if (parts.length < 4 || parts.length > 4) {
+		if (parts.length < MAX_IP_PARTS || parts.length > MAX_IP_PARTS) {
 			return false;
 		}
 		for (String part : parts) {
 			if (isParsable(part)) {
 				int partIpAddress = Integer.parseInt(part);
-				if (partIpAddress < 0 || partIpAddress > 999) {
+				if (partIpAddress < 0 || partIpAddress > MAX_OCT) {
 					return false;
 				}
 			} else {
@@ -118,8 +120,9 @@ public class Server {
 
 		public MessageHandler(Socket socket) throws IOException {
 			this.socket = socket;
-			// Creation d'un canal sortant pour snygyer des messages au client
+			// Creation d'un canal sortant pour envoyer des messages au client
 			this.out = new DataOutputStream(this.socket.getOutputStream());
+			// Creation d'un canal entrant pour recevoir des messages au client
 			this.in = new DataInputStream(this.socket.getInputStream());
 
 		}
@@ -180,7 +183,6 @@ public class Server {
 			password = this.messageHandler.receiveMessage();
 			System.out.println("password " + password);
 
-			// validation de l informaion du client( username et mdp) maybe refacto?
 			if (JSONFileHandler.userExists(username,serverDB) && !JSONFileHandler.isPassWordValid(username,password,serverDB)) {
 				this.messageHandler.sendToMe("Erreur dans la saisie du mot de passe");
 				System.out.println("Connection with client closed");
@@ -209,23 +211,24 @@ public class Server {
 			// thread qui envoie et recoit les messages au client
 			new Thread(new Runnable() {
 				String lineMessage = "";
-
+				final int CHAT_HISTORY_LENGTH = 15;
+				final int BYE_LENGTH = 3;
 				@Override
 				public void run() {
 					lineMessage = messageHandler.receiveMessage();
-					String message = lineMessage.substring(lineMessage.length() - 3);
+					String message = lineMessage.substring(lineMessage.length() - BYE_LENGTH);
 					while (!message.equals("bye")) {
 						
 						System.out.println(lineMessage);
 						messageHandler.sendToAllUsers(lineMessage);
-						if (chat.size() < 15)
+						if (chat.size() < CHAT_HISTORY_LENGTH)
 							chat.add(lineMessage);
 						else {
 							chat.remove(0);
 							chat.add(lineMessage);
 						}
 						lineMessage = messageHandler.receiveMessage();
-						message = lineMessage.substring(lineMessage.length() - 3);
+						message = lineMessage.substring(lineMessage.length() - BYE_LENGTH);
 					}
 					
 					try {
@@ -238,15 +241,8 @@ public class Server {
 					if(numberOfClients==0)
 					{
 					chatDB = JSONFileHandler.replaceChat(chat,serverDB);
-					//chatHistory.put(ipAdress, chat);
-					// ecriture de l historique de chat (15 dernieres lignes)
-					// todo : lire le fichier existant et ecraser les donnees deja ecrite si on a
-					// une historique du serveur actuel
-					// todo : tester l ecriture pour plusieurs serveurs
 					try {
-						JSONFileHandler.updateJsonFile("src/Server_chat_handler.json" , ipAdress, serverDB,listOfServers);;
-					//	}
-					//	myWriter.close();
+						JSONFileHandler.updateJsonFile("src/Server_chat_handler.json" , ipAdress, serverDB,listOfServers);
 						System.out.println("Successfully wrote to the file.");
 					} catch (Exception e) {
 						System.out.println("An error occurred.");
