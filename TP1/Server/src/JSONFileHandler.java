@@ -118,14 +118,15 @@ public class JSONFileHandler {
 	 }
 	 // ajoute un nouveau membre dans le clavardage
 	 // retourne le nouveau tableau des membres 
-	 static JSONArray addANewMember(String userName, String passWord,JSONObject server) 
+	 static void addANewMember(String userName, String passWord,JSONObject server) 
 	 {
 		 JSONArray members = (JSONArray) server.get("membres");
+		 server.remove("membres");
 		 JSONObject memberDetails = new JSONObject();
 		 memberDetails.put("nom",userName);
 		 memberDetails.put("motDePasse",passWord);
 		 members.add(memberDetails);
-		 return members;	 
+		 server.put("membres",members); 
 	 }
 	
      //    mets a jour la sauvegarde des 15 derniers messages du chat
@@ -157,10 +158,6 @@ public class JSONFileHandler {
 		 JSONObject server = new JSONObject();
 		 JSONArray member = new JSONArray();
 		 JSONArray chat = new JSONArray();
-		 JSONObject memberDetails = new JSONObject();
-		 memberDetails.put("nom","");
-		 memberDetails.put("motDePasse","");
-		 member.add(memberDetails);
 		 server.put("derniersMessages",chat);
 		 server.put("adresseIp",ipAdress);
 		 server.put("membres",member);

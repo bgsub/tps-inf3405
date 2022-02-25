@@ -1,0 +1,30 @@
+[
+  {
+    "adresseIp": "1.0.0.0",
+    "membres": [
+      {
+        "nom": "bryan",
+        "motDePasse": "helloWorld"
+      },
+      {
+        "nom": "rayan",
+        "motDePasse": "helloPlanet"
+      }
+    ],
+    "derniersMessages": ["hello", "hi"]
+  },
+  {
+    "adresseIp": "1.0.1.0",
+    "membres": [
+      {
+        "nom": "Z",
+        "motDePasse": "helloWorld"
+      },
+      {
+        "nom": "rayan",
+        "motDePasse": "helloPlanet"
+      }
+    ],
+    "derniersMessages": ["hello", "hi"]
+  }
+]

@@ -187,7 +187,7 @@ public class Server {
 					System.out.println("Couldn't close a socket, what's going on?");
 				}
 			} else if (!JSONFileHandler.userExists(username,serverDB)) {
-				listOfMembers= JSONFileHandler.addANewMember(username,password,serverDB);
+				JSONFileHandler.addANewMember(username,password,serverDB);
 				Server.clientList.add(this.messageHandler);
 				this.messageHandler
 						.sendToMe("ce nom d utilisateur n existe pas. Un nouveau compte a ete cree pour vous");
