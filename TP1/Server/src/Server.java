@@ -46,7 +46,6 @@ public class Server {
 		if(numberOfClients==0) chat = JSONFileHandler.readChatHistory(serverDB);
 
 		System.out.println("IP adress is: " + ipAdress); 
-
 		System.out.println("Entrez le port d'écoute : ");
 		String port = myObj.nextLine(); 
 		int portNumber = 0;
@@ -178,10 +177,7 @@ public class Server {
 			String username = "";
 			String password = "";
 			username = this.messageHandler.receiveMessage();
-			System.out.println("username " + username);
 			password = this.messageHandler.receiveMessage();
-			System.out.println("password " + password);
-
 			if (JSONFileHandler.userExists(username,serverDB) && !JSONFileHandler.isPassWordValid(username,password,serverDB)) {
 				this.messageHandler.sendToMe("Erreur dans la saisie du mot de passe");
 				System.out.println("Connection with client closed");
@@ -198,12 +194,12 @@ public class Server {
 			} else {
 				Server.clientList.add(this.messageHandler);
 			}
-			this.messageHandler.sendToMe("Bienvenue " + username+"\nGuide: Pour quitter le chat ,écrivez le message bye .");
+			this.messageHandler.sendToMe("Bienvenue " + username+"\nGuide: Pour quitter le chat ,écrivez le message: 'bye' .");
 		    for(int i = 0; i<chat.size();i++)
 		    {
 		    	this.messageHandler.sendToMe(chat.get(i));
 		    }
-			System.out.println( "nombre de clients" + numberOfClients );
+			System.out.println( "nombre de clients: " + numberOfClients );
 		}
 
 		public void run() {

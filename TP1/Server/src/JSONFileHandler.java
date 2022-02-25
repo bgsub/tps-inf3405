@@ -16,55 +16,13 @@ import org.json.simple.parser.JSONParser;
 
 public class JSONFileHandler {
 
-	public static void main(String[] args) {
-		JSONArray servers = readJSONFile("src/Server_chat_handler.json");
-		System.out.println(servers);
-		JSONObject item = findTheRightServer("1.0.0.0",servers);
-		// testing findServer
-		System.out.println(item);
-		// testing user and passwords validation
-		System.out.println(userExists("bryan",item));
-		System.out.println(userExists("claude",item));
-		System.out.println(isPassWordValid("bryan","helloWorld",item));
-		System.out.println(isPassWordValid("bryan","hellWorld",item));
-		System.out.println(isPassWordValid("bran","helloWorld",item));
-		System.out.println(isPassWordValid("bran","helloWrld",item));
-		// testing adding members
-		System.out.println(addANewMember("hello","world",item));
-		//testing modification of members list in the server
-		 JSONArray members = (JSONArray) item.get("membres");
-		 members  =addANewMember("hi","world",item);
-		 item.remove("membres");
-		 System.out.println(item);
-		 item.put("membres",members);
-		 System.out.println(members);
-		 // testing modification of chat in the server
-		 
-		 JSONArray chat = (JSONArray) item.get("derniersMessages");
-	     ArrayList<String> arr = new ArrayList<String>();
-	     arr.add("hello");
-	     arr.add("hi");
-		 chat  = replaceChat(arr,item);
-		 item.remove("derniersMessages");
-		 System.out.println(item);
-		 item.put("derniersMessages",chat);
-		 System.out.println(item);
-		 //insering a new server 
-		 System.out.println(insertNewServer("1.1.1.0", servers));
-		 // testing the JSONFile update
-		 updateJsonFile("src/Server_chat_handler.json","1.1.0.0",item,servers);
-		 
-        }
-	
 	// lis le fichier et sauvegarde son contenu, supprime l ancienne version du serveur qui est en parametre,
 	//remplace celui ci par une nouvelle version passée en parametre, le rajoute dans le serveur, cree un nouveau fichier.
 	static void updateJsonFile(String fileName , String ipAdress, JSONObject newServerInstence,JSONArray oldListofServers )
 	 {
-		 System.out.println(oldListofServers);
 		 JSONObject oldServer = findTheRightServer(ipAdress,oldListofServers);
 		 oldListofServers.remove(oldServer);
 		 oldListofServers.add(newServerInstence);
-		 System.out.println(oldListofServers);
 		 deleteFile(fileName);
 		 createNewJSONFile(fileName,oldListofServers);
 	 }
@@ -75,10 +33,9 @@ public class JSONFileHandler {
 	         file.write(instance.toJSONString());
 	         file.close();
 	      } catch (IOException e) {
-	         // TODO Auto-generated catch block
 	         e.printStackTrace();
 	      }
-	      System.out.println("fichier mis a jour "+ instance);
+	      System.out.println("fichier mis a jour ");
 	}
 	
 //  lis le fichier des serveurs et retourne l objet serveur dont l adresseIP est en parametre
@@ -160,7 +117,7 @@ public class JSONFileHandler {
 			return isValid;
 	 }
 	 // ajoute un nouveau membre dans le clavardage
-	  // retourne le nouveau tableau des membres 
+	 // retourne le nouveau tableau des membres 
 	 static JSONArray addANewMember(String userName, String passWord,JSONObject server) 
 	 {
 		 JSONArray members = (JSONArray) server.get("membres");
@@ -171,8 +128,8 @@ public class JSONFileHandler {
 		 return members;	 
 	 }
 	
-   // mets a jour la sauvegarde des 15 derniers messages du chat
-	//  parametres : nom de l element qui doi etre remplacer pour acceder a celui ci : String 
+     //    mets a jour la sauvegarde des 15 derniers messages du chat
+	 //  parametres : nom de l element qui doi etre remplacer pour acceder a celui ci : String 
 	   
 	 static JSONArray replaceChat(ArrayList<String> savedChat,JSONObject server)
 	 {
