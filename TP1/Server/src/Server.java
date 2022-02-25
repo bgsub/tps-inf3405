@@ -14,7 +14,6 @@ public class Server {
 	private static ServerSocket listener;
 	private static ArrayList<MessageHandler> clientList = new ArrayList<MessageHandler>();
 	private static JSONArray listOfServers = new JSONArray();
-	private static JSONArray listOfMembers = new JSONArray();
 	private static JSONObject serverDB = new JSONObject();
 	private static JSONArray chatDB =  new JSONArray();
 	private static ArrayList<String> chat = new ArrayList<String>();
