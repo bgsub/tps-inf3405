@@ -1,14 +1,10 @@
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
-import java.text.ParseException;
 import java.util.ArrayList;
-//import java.text.ParseException;
-import java.util.Iterator;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -26,7 +22,7 @@ public class JSONFileHandler {
 		JSONObject item = findTheRightServer("1.0.0.0",servers);
 		// testing findServer
 		System.out.println(item);
-		// testing user and passwords vilidation
+		// testing user and passwords validation
 		System.out.println(userExists("bryan",item));
 		System.out.println(userExists("claude",item));
 		System.out.println(isPassWordValid("bryan","helloWorld",item));
